@@ -1064,6 +1064,7 @@ function checkversion()
 		document.getElementById('Version').innerHTML = xhr.responseText;	
 		document.getElementById('newrelease').innerHTML = document.getElementById('firmware_last').innerHTML;
     }
+	// TODO: Change this to my own release notes with matching html source.
 	xhr.open("GET","http://KaraDio.karawin.fr/version32.php", false);
 	try{
 		xhr.send(null );

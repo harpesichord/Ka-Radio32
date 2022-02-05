@@ -45,7 +45,7 @@
 #define BUFFSIZE 1024
 
 const char strupd[]  = {\
-"GET /%s.bin HTTP/1.1\r\nHost: karadio.karawin.fr:80\r\n\r\n"};
+"GET /static_files/karadio32/%s.bin HTTP/1.1\r\nHost: files.harpelife.com:443\r\n\r\n"};
 
 /*an ota data write buffer ready to write to the flash*/
 static char ota_write_data[BUFFSIZE + 1] = { 0 };
@@ -169,7 +169,8 @@ static void ota_task(void *pvParameter)
 	
 		
 	// prepare connection to the server
-	serv =(struct hostent*)gethostbyname("karadio.karawin.fr");
+	// TODO: PUT KaRadio32.bin file on my own server to use for OTA updates
+	serv =(struct hostent*)gethostbyname("files.harpelife.com");
 	sockfd = socket(AF_INET, SOCK_STREAM, 0);
 	if(sockfd >= 0) {ESP_LOGI(TAG,"WebClient Socket created"); }
 	else {ESP_LOGE(TAG,"socket create errno: %d",errno);wsUpgrade("Failed: socket errno", 0,100); goto exit;}
