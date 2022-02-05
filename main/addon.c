@@ -39,7 +39,7 @@ static void evtClearScreen();
 // second before time display in stop state
 #define DTIDLE  60
 
-
+bool _isRadio = true;
 
 #define isColor (lcd_type&LCD_COLOR)
 const char *stopped = "STOPPED";	
@@ -536,6 +536,9 @@ static void evtScreen(typelcmd value)
 
 static void evtStation(int16_t value)
 { // value +1 or -1
+	if (!_isRadio)
+		setRelVolume(value);
+
 	event_lcd_t evt; 
 	evt.lcmd = estation;
 	evt.lline = (char*)((uint32_t)value);
@@ -545,10 +548,17 @@ static void evtStation(int16_t value)
 // toggle main / time
 static void toggletime()
 {
-	event_lcd_t evt;
-	evt.lcmd = etoggle;	
-	evt.lline = NULL;
-	if (lcd_type != LCD_NONE) xQueueSend(event_lcd,&evt, 0);	
+	g_device = getDeviceSettings();	
+
+	if (IS_RADIO(g_device->options32))
+		//	We're in radio mode -> switch to bluetooth
+		SET_BTSPEAKER(g_device->options32);
+	else
+	//	We're in bluetooth mode -> switch to radio
+		SET_RADIO(g_device->options32);
+
+	saveDeviceSettings(g_device);	
+	esp_restart();		
 }
 
 //----------------------------
@@ -809,7 +819,11 @@ void encoderCompute(Encoder_t *enc,bool role)
    	// if an event on encoder switch	
 	if (newButton != Open)
 	{ 
-		if (newButton == Clicked) {startStop();}
+		if (newButton == Clicked) 
+		{
+			if (_isRadio)
+				startStop();
+		}
 		// double click = toggle time
 		if (newButton == DoubleClicked) { toggletime();}
 		// switch held and rotated then change station
@@ -1343,6 +1357,33 @@ void task_addon(void *pvParams)
 			deepSleepStart();
 
 		vTaskDelay(10);
+	}	
+	vTaskDelete( NULL ); 
+}
+
+void task_encoders(void *pvParams)
+{
+	xTaskHandle pxCreatedTask;
+	customKeyInit();
+	initButtonDevices();
+	adcInit();
+
+
+	// queue for events of the lcd
+	event_lcd = xQueueCreate(20, sizeof(event_lcd_t));
+	ESP_LOGD(TAG,"event_lcd: %x",(int)event_lcd);	
+
+	xTaskCreatePinnedToCore (task_lcd, "task_lcd", 2200, NULL, PRIO_LCD, &pxTaskLcd,CPU_LCD); 
+	ESP_LOGI(TAG, "%s task: %x","task_lcd",(unsigned int)pxTaskLcd);
+	getTaskLcd(&pxTaskLcd); // give the handle to xpt
+
+	serviceAddon = &multiService;		; // connect the 1ms interruption
+
+	while (1)
+	{
+		periphLoop(); // compute the encoder
+
+		vTaskDelay(20);
 	}	
 	vTaskDelete( NULL ); 
 }

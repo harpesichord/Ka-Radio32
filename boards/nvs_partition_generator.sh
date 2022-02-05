@@ -17,12 +17,14 @@ build_binary () {
 	echo -e "\nBoard \e[33m$fname\e[m"
 	comment="$(grep L_COMMENT $1 | sed -E 's/^.*,string,//; s/\s*\.\s*$//')"
 	echo -e "\e[34m${comment}\e[m"
-	python $NVS_PARTITION_GENERATOR\
-		--version v1\
-		--outdir build\
-		--input "$1"\
-		--output "$fname.bin"\
-		--size $SIZE_PARTITION
+	python $NVS_PARTITION_GENERATOR \
+		--version v1 \
+		"$1" \
+		"build/$fname.bin"
+		#--outdir build \
+		#--input "$1" \
+		#--output "$fname.bin" \
+		#--size $SIZE_PARTITION
 }
 
 if [ "$#" -eq 0 ]; then

@@ -1,0 +1,6 @@
+{
+    "idf.adapterTargetName": "esp32",
+    "files.associations": {
+        "bt_app_core.h": "c"
+    }
+}

@@ -52,7 +52,7 @@ Copyright (C) 2017  KaraWin
 
 #include "spiram_fifo.h"
 #include "audio_renderer.h"
-//#include "bt_speaker.h"
+#include "bt_speaker.h"
 #include "bt_config.h"
 //#include "mdns_task.h"
 #include "audio_player.h"
@@ -903,7 +903,7 @@ void app_main()
 			g_device->uartspeed = 115200; // default
 //			g_device->audio_output_mode = I2S; // default
 			option_get_audio_output(&(g_device->audio_output_mode));
-			g_device->trace_level = ESP_LOG_ERROR; //default
+			g_device->trace_level = ESP_LOG_INFO; //default
 			g_device->vol = 100; //default
 			g_device->led_gpio = GPIO_NONE;
 			saveDeviceSettings(g_device);			
@@ -941,7 +941,7 @@ void app_main()
 	websocketinit();
 
 	// log level
-	setLogLevel(g_device->trace_level);
+	setLogLevel(ESP_LOG_ERROR);
 	
 	//time display
 	uint8_t ddmm;
@@ -1055,6 +1055,31 @@ void app_main()
 	
 	xTaskCreatePinnedToCore(uartInterfaceTask, "uartInterfaceTask", 2500, NULL, PRIO_UART, &pxCreatedTask,CPU_UART); 
 	ESP_LOGI(TAG, "%s task: %x","uartInterfaceTask",(unsigned int)pxCreatedTask);
+
+	// Debug
+	//SET_BTSPEAKER(g_device->options32);
+
+	if (IS_RADIO(g_device->options32))
+	{
+		//	We're in radio mode, nothing to do
+		ESP_LOGE(TAG,"Running in radio mode");
+		_isRadio = true;
+	}
+	else
+	{
+		_isRadio = false;
+		//	We're in bluetooth mode, block here
+		ESP_LOGE(TAG,"Running in BT mode");
+ESP_LOGI(TAG, "RAM left: %u", esp_get_free_heap_size());
+		vTaskDelay(1);
+		xTaskCreatePinnedToCore (task_encoders, "task_encoders", 2200, NULL, PRIO_ADDON, &pxCreatedTask, CPU_ADDON);  
+		ESP_LOGI(TAG, "%s task: %x","task_encoders",(unsigned int)pxCreatedTask);	
+ESP_LOGI(TAG, "RAM left: %u", esp_get_free_heap_size());
+		bt_speaker_start(create_renderer_config());
+		ESP_LOGI(TAG, "RAM left: %u", esp_get_free_heap_size());
+		goto end_point;
+	}
+	ESP_LOGI(TAG, "RAM left: %u", esp_get_free_heap_size());
 	
 //-----------------------------
 // start the network
@@ -1134,4 +1159,6 @@ void app_main()
 	//autostart		
 	autoPlay();
 // All done.
+	end_point:
+		ledStatus = ledStatus;
 }
