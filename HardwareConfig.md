@@ -12,7 +12,7 @@ A csv file is interpreted by an utility to generate a bin file that must be flas
 ---------------
 Toolchain Setup
 --------------------
-The quick setup is to download the Windows all-in-one toolchain & MSYS2 zip file from dl.espressif.com:
+The quick setup is to download the Windows all-in-one toolchain & MSYS2 zip file from dl.espressif.com. See  
 
 https://dl.espressif.com/dl/esp32_win32_msys2_environment_and_toolchain-20181001.zip
 
