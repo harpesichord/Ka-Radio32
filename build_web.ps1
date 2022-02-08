@@ -1,0 +1,1 @@
+wsl -- cd /mnt/c/ESP-Software/Ka-Radio32/webpage "&&" ./generate.sh
